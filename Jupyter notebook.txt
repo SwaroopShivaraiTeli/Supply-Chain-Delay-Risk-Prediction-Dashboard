@@ -1,0 +1,104 @@
+#Load and Explore Dataset
+import pandas as pd
+
+df = pd.read_csv(r"D:\NEW DATA ANALYTICS\New folder\dynamic_supply_chain_logistics_dataset_with_country.csv")
+print(df.shape)
+print(df.info())
+(113097, 18)
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 113097 entries, 0 to 113096
+Data columns (total 18 columns):
+ #   Column                           Non-Null Count   Dtype  
+---  ------                           --------------   -----  
+ 0   warehouse_inventory_level        113097 non-null  float64
+ 1   handling_equipment_availability  113097 non-null  float64
+ 2   order_fulfillment_status         113097 non-null  float64
+ 3   weather_condition_severity       113097 non-null  float64
+ 4   shipping_costs                   113097 non-null  float64
+ 5   supplier_reliability_score       113097 non-null  float64
+ 6   lead_time_days                   113097 non-null  float64
+ 7   historical_demand                113097 non-null  float64
+ 8   cargo_condition_status           113097 non-null  float64
+ 9   route_risk_level                 113097 non-null  float64
+ 10  customs_clearance_time           113097 non-null  float64
+ 11  disruption_likelihood_score      113097 non-null  float64
+ 12  delay_probability                113097 non-null  float64
+ 13  risk_classification              113097 non-null  object 
+ 14  delivery_time_deviation          113097 non-null  float64
+ 15  product_id                       113097 non-null  object 
+ 16  supplier_id                      113097 non-null  object 
+ 17  supplier_country                 113097 non-null  object 
+dtypes: float64(14), object(4)
+memory usage: 15.5+ MB
+None
+#Create Target Variable
+def delay_risk_label(prob):
+    if prob <= 0.33:
+        return "Low"
+    elif prob <= 0.66:
+        return "Medium"
+    else:
+        return "High"
+
+df['delay_risk_level'] = df['delay_probability'].apply(delay_risk_label)
+#Encode Categorical Feature
+from sklearn.preprocessing import LabelEncoder
+
+# Encode supplier_country
+le_country = LabelEncoder()
+df['supplier_country_encoded'] = le_country.fit_transform(df['supplier_country'])
+
+# Encode target class labels
+le_target = LabelEncoder()
+df['delay_risk_level_encoded'] = le_target.fit_transform(df['delay_risk_level'])
+#Train/Test Split
+from sklearn.model_selection import train_test_split
+
+features = [
+    'warehouse_inventory_level', 'handling_equipment_availability',
+    'order_fulfillment_status', 'weather_condition_severity',
+    'shipping_costs', 'supplier_reliability_score', 'lead_time_days',
+    'historical_demand', 'cargo_condition_status', 'route_risk_level',
+    'customs_clearance_time', 'disruption_likelihood_score',
+    'supplier_country_encoded'
+]
+
+X = df[features]
+y = df['delay_risk_level_encoded']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+from sklearn.ensemble import RandomForestClassifier
+import joblib
+
+# Train
+rf_model = RandomForestClassifier(class_weight='balanced', random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Save the Random Forest model
+joblib.dump(rf_model, "delay_risk_model.pkl")
+print("✅ Model saved successfully.")
+✅ Model saved successfully.
+# Evaluate Model
+from sklearn.metrics import classification_report
+
+y_pred = rf_model.predict(X_test)
+print(classification_report(y_test, y_pred))
+              precision    recall  f1-score   support
+
+           0       0.98      1.00      0.99     14476
+           1       1.00      0.96      0.98      4289
+           2       1.00      0.95      0.98      3855
+
+    accuracy                           0.98     22620
+   macro avg       0.99      0.97      0.98     22620
+weighted avg       0.99      0.98      0.98     22620
+
+import joblib
+joblib.dump(rf_model, "delay_risk_model.pkl")
+joblib.dump(le_country, "label_encoder_supplier_country.pkl")
+joblib.dump(le_target, "label_encoder_target.pkl")
+['label_encoder_target.pkl']
+loaded_model = joblib.load("delay_risk_model.pkl")
+print(type(loaded_model))
+<class 'sklearn.ensemble._forest.RandomForestClassifier'>
+ 
