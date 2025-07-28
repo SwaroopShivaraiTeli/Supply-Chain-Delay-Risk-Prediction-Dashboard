@@ -1,7 +1,7 @@
 # Supply-Chain-Delay-Risk-Prediction-Dashboard
 
 📦 Supply Chain Delay Risk Predictor
-A machine learning web app to predict delay risk levels in supply chain logistics using Random Forest, deployed via Streamlit. Upload your CSV data, get real-time predictions with delay risk classification (Low, Medium, High), and download results — all with explainable AI features and robust validation.
+A machine learning web app to predict delay risk levels in supply chain logistics using Random Forest, deployed via Streamlit. Upload your CSV data, get real-time predictions with delay risk classification (Low, Medium, High), and download results all with explainable AI features and robust validation.
 
 🚀 Project Highlights
 🔍 Delay Risk Classification using Random Forest (Accuracy: 98%)
